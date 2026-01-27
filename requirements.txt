@@ -1,0 +1,11 @@
+streamlit
+openai
+requests
+pandas
+openpyxl
+python-docx
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+beautifulsoup4
+lxml
