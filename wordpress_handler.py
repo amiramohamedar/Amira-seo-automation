@@ -1,31 +1,32 @@
 import requests
-import json
 import base64
 
-class WordPressHandler:
-    def __init__(self, site_url: str, username: str, app_password: str):
-        self.site_url = site_url.rstrip('/')
-        self.api_url = f"{self.site_url}/wp-json/wp/v2"
-        self.auth = base64.b64encode(f"{username}:{app_password}".encode()).decode()
-        self.headers = {
-            'Authorization': f'Basic {self.auth}',
-            'Content-Type': 'application/json'
-        }
-
-    def post_article(self, title: str, content: str, status: str = 'draft') -> dict:
-        """رفع المقال إلى ووردبريس"""
-        endpoint = f"{self.api_url}/posts"
-        data = {
-            'title': title,
-            'content': content,
-            'status': status
-        }
-        
-        try:
-            response = requests.post(endpoint, headers=self.headers, json=data)
-            if response.status_code in [200, 201]:
-                return {"success": True, "link": response.json().get('link'), "id": response.json().get('id')}
-            else:
-                return {"success": False, "error": response.text}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+def upload_to_wordpress(url, user, password, article):
+    """
+    يرفع المقال إلى WordPress كمسودة.
+    """
+    endpoint = f"{url.rstrip('/')}/wp-json/wp/v2/posts"
+    
+    # تشفير بيانات الاعتماد (Application Password)
+    credentials = f"{user}:{password}"
+    token = base64.b64encode(credentials.encode()).decode()
+    
+    headers = {
+        "Authorization": f"Basic {token}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "title": article["title"],
+        "content": article["html"],
+        "status": "draft"
+    }
+    
+    try:
+        response = requests.post(endpoint, json=payload, headers=headers)
+        if response.status_code == 201:
+            return f"✅ تم رفع المقال بنجاح كمسودة! رابط المقال: {response.json().get('link')}"
+        else:
+            return f"❌ فشل الرفع: {response.text}"
+    except Exception as e:
+        return f"❌ خطأ في الاتصال: {str(e)}"
